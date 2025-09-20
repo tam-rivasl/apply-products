@@ -2,6 +2,8 @@ import {
   LogBusinessOperation,
   LogMethod,
   LogDbOperation,
+  LogApiCall,
+  LogSecurityOperation,
 } from './log-method.decorator';
 
 describe('LogMethod family', () => {
@@ -24,6 +26,16 @@ describe('LogMethod family', () => {
     @LogDbOperation('products')
     async db(id: string) {
       return id;
+    }
+
+    @LogApiCall('contentful')
+    async apiCall(method: string) {
+      return method;
+    }
+
+    @LogSecurityOperation('auth.login')
+    async security() {
+      return true;
     }
   }
 
@@ -68,5 +80,21 @@ describe('LogMethod family', () => {
       expect.stringContaining('Starting db.products'),
       expect.any(Object),
     );
+  });
+
+  it('logs api calls with debug level', async () => {
+    await service.apiCall('GET');
+    const call = logger.debug.mock.calls.find(([msg]) =>
+      msg.includes('Starting api.contentful'),
+    );
+    expect(call).toBeDefined();
+  });
+
+  it('logs security operations without args', async () => {
+    await service.security();
+    const entries = logger.log.mock.calls.filter(([msg]) =>
+      msg.includes('Starting auth.login'),
+    );
+    expect(entries.length).toBeGreaterThan(0);
   });
 });
