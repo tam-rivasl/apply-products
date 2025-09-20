@@ -1,0 +1,482 @@
+openapi: 3.0.3
+info:
+  title: Apply Products API
+  version: 1.0.0
+  description: |
+    REST API that synchronises Product entries from Contentful into PostgreSQL every hour.
+    Public catalogue endpoints are read-only, while mutations and reporting routes require a JWT bearer token.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+tags:
+  - name: Auth
+    description: Authentication utilities
+  - name: Products
+    description: Product catalogue and mutations
+  - name: Reports
+    description: Private analytics endpoints
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Issue JWT access token
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: JWT token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+  /api/products:
+    get:
+      tags: [Products]
+      summary: List products (public)
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/NameParam'
+        - $ref: '#/components/parameters/CategoryParam'
+        - $ref: '#/components/parameters/BrandParam'
+        - $ref: '#/components/parameters/ModelParam'
+        - $ref: '#/components/parameters/ColorParam'
+        - $ref: '#/components/parameters/CurrencyParam'
+        - $ref: '#/components/parameters/SkuParam'
+        - $ref: '#/components/parameters/StockParam'
+        - $ref: '#/components/parameters/PriceParam'
+        - $ref: '#/components/parameters/PriceMinParam'
+        - $ref: '#/components/parameters/PriceMaxParam'
+        - $ref: '#/components/parameters/SelectParam'
+      responses:
+        '200':
+          description: Paginated list of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+    post:
+      tags: [Products]
+      summary: Create product (private)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductDto'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductItem'
+  /api/products/{id}:
+    patch:
+      tags: [Products]
+      summary: Update product (private)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductDto'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductItem'
+  /api/products/id/{id}:
+    delete:
+      tags: [Products]
+      summary: Soft delete product (private)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product soft deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResult'
+  /api/reports/overview:
+    get:
+      tags: [Reports]
+      summary: Overview report
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FromParam'
+        - $ref: '#/components/parameters/ToParam'
+        - $ref: '#/components/parameters/DateFieldParam'
+        - $ref: '#/components/parameters/CategoryParam'
+        - $ref: '#/components/parameters/BrandParam'
+        - $ref: '#/components/parameters/ModelParam'
+        - $ref: '#/components/parameters/ColorParam'
+        - $ref: '#/components/parameters/CurrencyParam'
+      responses:
+        '200':
+          description: Overview KPIs for the given window
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewReport'
+  /api/reports/by-category:
+    get:
+      tags: [Reports]
+      summary: Category breakdown
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FromParam'
+        - $ref: '#/components/parameters/ToParam'
+        - $ref: '#/components/parameters/DateFieldParam'
+        - $ref: '#/components/parameters/CategoryParam'
+        - $ref: '#/components/parameters/BrandParam'
+        - $ref: '#/components/parameters/ModelParam'
+        - $ref: '#/components/parameters/ColorParam'
+        - $ref: '#/components/parameters/CurrencyParam'
+      responses:
+        '200':
+          description: Products grouped by category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryBreakdownItem'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+    LoginResponse:
+      type: object
+      required: [access_token]
+      properties:
+        access_token:
+          type: string
+    ProductItem:
+      type: object
+      required: [id, contentfulId, name, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentfulId:
+          type: string
+        sku:
+          type: string
+          nullable: true
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        brand:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        stock:
+          type: integer
+          nullable: true
+        sourceCreatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sourceUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProductListResponse:
+      type: object
+      required: [offset, limit, total, data]
+      properties:
+        offset:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          maximum: 5
+        total:
+          type: integer
+          minimum: 0
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductItem'
+    CreateProductDto:
+      type: object
+      required: [contentfulId, name]
+      properties:
+        contentfulId:
+          type: string
+        name:
+          type: string
+        sku:
+          type: string
+        category:
+          type: string
+          nullable: true
+        brand:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        stock:
+          type: integer
+          nullable: true
+        sourceCreatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sourceUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    UpdateProductDto:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        currency:
+          type: string
+        sku:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+    DeleteResult:
+      type: object
+      required: [id, deleted]
+      properties:
+        id:
+          type: string
+        deleted:
+          type: boolean
+    OverviewReport:
+      type: object
+      required:
+        - total
+        - deletedCount
+        - deletedPct
+        - pricedCount
+        - pricedPct
+        - noPriceCount
+        - noPricePct
+        - priceMin
+        - priceMax
+        - priceAvg
+      properties:
+        total:
+          type: integer
+        deletedCount:
+          type: integer
+        deletedPct:
+          type: number
+          format: float
+        pricedCount:
+          type: integer
+        pricedPct:
+          type: number
+          format: float
+        noPriceCount:
+          type: integer
+        noPricePct:
+          type: number
+          format: float
+        priceMin:
+          type: number
+          nullable: true
+        priceMax:
+          type: number
+          nullable: true
+        priceAvg:
+          type: number
+          nullable: true
+    CategoryBreakdownItem:
+      type: object
+      required: [category, total]
+      properties:
+        category:
+          type: string
+          nullable: true
+        total:
+          type: integer
+  parameters:
+    OffsetParam:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Pagination offset
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 5
+        default: 5
+      description: Page size (max 5)
+    NameParam:
+      name: name
+      in: query
+      schema:
+        type: string
+      description: Case-insensitive name search
+    CategoryParam:
+      name: category
+      in: query
+      schema:
+        type: string
+    BrandParam:
+      name: brand
+      in: query
+      schema:
+        type: string
+    ModelParam:
+      name: model
+      in: query
+      schema:
+        type: string
+    ColorParam:
+      name: color
+      in: query
+      schema:
+        type: string
+    CurrencyParam:
+      name: currency
+      in: query
+      schema:
+        type: string
+    SkuParam:
+      name: sku
+      in: query
+      schema:
+        type: string
+    StockParam:
+      name: stock
+      in: query
+      schema:
+        type: integer
+    PriceParam:
+      name: price
+      in: query
+      schema:
+        type: number
+        format: float
+      description: Filter by exact price
+    PriceMinParam:
+      name: priceMin
+      in: query
+      schema:
+        type: number
+        format: float
+      description: Minimum price filter
+    PriceMaxParam:
+      name: priceMax
+      in: query
+      schema:
+        type: number
+        format: float
+      description: Maximum price filter
+    SelectParam:
+      name: select
+      in: query
+      schema:
+        type: string
+      description: Comma-separated list of columns to project (e.g. `select=name,price`)
+    FromParam:
+      name: from
+      in: query
+      schema:
+        type: string
+        format: date-time
+      description: Inclusive start ISO-8601 timestamp
+    ToParam:
+      name: to
+      in: query
+      schema:
+        type: string
+        format: date-time
+      description: Inclusive end ISO-8601 timestamp
+    DateFieldParam:
+      name: dateField
+      in: query
+      schema:
+        type: string
+        enum: [createdAt, updatedAt, deletedAt, sourceUpdatedAt]
+        default: updatedAt
+      description: Column used for time window calculation

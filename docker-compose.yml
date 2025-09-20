@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-apply_products}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3000}
+
+      # DB
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-postgres}
+      DB_NAME: ${DB_NAME:-apply_products}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-dev_secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+
+      # Contentful
+      CONTENTFUL_SPACE_ID: ${CONTENTFUL_SPACE_ID}
+      CONTENTFUL_ACCESS_TOKEN: ${CONTENTFUL_ACCESS_TOKEN}
+      CONTENTFUL_ENVIRONMENT: ${CONTENTFUL_ENVIRONMENT:-master}
+      CONTENTFUL_CONTENT_TYPE: ${CONTENTFUL_CONTENT_TYPE:-product}
+
+      # Sync
+      SYNC_CRON: ${SYNC_CRON:-0 * * * *}
+      SYNC_PAGE_SIZE: ${SYNC_PAGE_SIZE:-100}
+      HTTP_TIMEOUT_MS: ${HTTP_TIMEOUT_MS:-15000}
+      HTTP_RETRIES: ${HTTP_RETRIES:-3}
+
+    ports:
+      - "3000:3000"
+    command: ["/bin/sh", "-lc", "./entrypoint.sh"]

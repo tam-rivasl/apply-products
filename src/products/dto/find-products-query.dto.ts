@@ -1,42 +1,49 @@
 import { IsOptional, IsInt, Min, IsNumber, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginationQueryDto } from './pagination-query.dto';
-
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { cleanString } from '../../common/utils/sanitize';
 export class FindProductsQueryDto extends PaginationQueryDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   name?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   category?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   brand?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   model?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   color?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   currency?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   sku?: string;
 
   @ApiProperty({ required: false })
@@ -55,16 +62,15 @@ export class FindProductsQueryDto extends PaginationQueryDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  id?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  priceMin?: number;
 
-  @ApiProperty({
-    required: false,
-    type: [String],
-    example: 'name,price,stock',
-    description: 'Comma-separated list of fields to select',
-  })
+  @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  select?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  priceMax?: number;
 }

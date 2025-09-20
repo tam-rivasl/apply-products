@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_DB: apply_products_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd="pg_isready -U postgres -d apply_products_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: apply_products_test
+
+      JWT_SECRET: test_secret
+      JWT_EXPIRES_IN: 1h
+
+      CONTENTFUL_SPACE_ID: dummy
+      CONTENTFUL_ACCESS_TOKEN: dummy
+      CONTENTFUL_ENVIRONMENT: master
+      CONTENTFUL_CONTENT_TYPE: product
+
+      SYNC_CRON: 0 * * * *
+      SYNC_PAGE_SIZE: 50
+      HTTP_TIMEOUT_MS: 15000
+      HTTP_RETRIES: 2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+      - name: Run migrations
+        run: yarn migration:run:dist
+
+      - name: Test with coverage
+        run: yarn test:cov
