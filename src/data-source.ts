@@ -4,10 +4,13 @@ import * as path from 'path';
 import { Product } from './products/entities/product.entity';
 import { SyncState } from './sync/sync-state.entity';
 
-const isProd = (process.env.NODE_ENV ?? 'development') === 'production';
-const migrationsGlob = isProd
-  ? path.resolve(__dirname, 'database', 'migration', '*.js')
-  : path.resolve(__dirname, 'database', 'migration', '*.ts');
+const fileExtension = __filename.endsWith('.ts') ? 'ts' : 'js';
+const migrationsGlob = path.resolve(
+  __dirname,
+  'database',
+  'migration',
+  `*.${fileExtension}`,
+);
 
 export default new DataSource({
   type: 'postgres',

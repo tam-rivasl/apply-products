@@ -20,8 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
-    "migration:run:dist": "node dist/data-source.js migration:run",
-    "migration:revert:dist": "node dist/data-source.js migration:revert",
+    "migration:run:dist": "typeorm migration:run -d dist/data-source.js",
+    "migration:revert:dist": "typeorm migration:revert -d dist/data-source.js",
     "build:tsc": "tsc -p tsconfig.json",
     "ci:test": "yarn lint && yarn test:cov"
   },
