@@ -47,13 +47,20 @@ describe('ReportsService', () => {
       expect(dataSource.query).toHaveBeenCalledTimes(4);
       expect(dataSource.query).toHaveBeenCalledWith(
         expect.stringContaining('FROM products'),
-        expect.arrayContaining(['2025-09-01T00:00:00.000Z', '2025-09-20T00:00:00.000Z']),
+        expect.arrayContaining([
+          '2025-09-01T00:00:00.000Z',
+          '2025-09-20T00:00:00.000Z',
+        ]),
       );
     });
 
     it('throws on invalid dateField', async () => {
       await expect(
-        service.overview({ from: '2024-01-01', to: '2024-01-02', dateField: 'invalid' as any }),
+        service.overview({
+          from: '2024-01-01',
+          to: '2024-01-02',
+          dateField: 'invalid' as any,
+        }),
       ).rejects.toThrow('Invalid dateField');
       expect(dataSource.query).not.toHaveBeenCalled();
     });
@@ -66,7 +73,10 @@ describe('ReportsService', () => {
         { category: null, total: 2 },
       ]);
 
-      const breakdown = await service.byCategory({ from: '2025-09-10T00:00:00.000Z', to: '2025-09-20T00:00:00.000Z' } as ReportsQueryDto);
+      const breakdown = await service.byCategory({
+        from: '2025-09-10T00:00:00.000Z',
+        to: '2025-09-20T00:00:00.000Z',
+      } as ReportsQueryDto);
 
       expect(breakdown).toEqual([
         { category: 'Laptops', total: 3 },
@@ -86,12 +96,18 @@ describe('ReportsService', () => {
 
     it('coerceRange validates ordering', () => {
       expect(() =>
-        (service as any).coerceRange({ from: '2025-09-10T00:00:00.000Z', to: '2025-09-09T00:00:00.000Z' }),
+        (service as any).coerceRange({
+          from: '2025-09-10T00:00:00.000Z',
+          to: '2025-09-09T00:00:00.000Z',
+        }),
       ).toThrow('"from" must be <= "to"');
     });
 
     it('buildFilters produces positional parameters', () => {
-      const filters = (service as any).buildFilters({ brand: 'Logi', color: 'Black' });
+      const filters = (service as any).buildFilters({
+        brand: 'Logi',
+        color: 'Black',
+      });
       expect(filters.sql.trim()).toContain('AND');
       expect(filters.args).toEqual(['Logi', 'Black']);
     });

@@ -22,12 +22,12 @@ async function bootstrap() {
     }),
   );
   app.use(helmet());
-  
+
   // Get logger service instance
   const loggerService = app.get(LoggerService);
-  
+
   app.useGlobalFilters(new GlobalExceptionFilter(loggerService));
-  
+
   app.useGlobalInterceptors(
     new TransformInterceptor(),
     new RequestLoggingInterceptor(loggerService),
@@ -35,7 +35,9 @@ async function bootstrap() {
   );
   const cfg = new DocumentBuilder()
     .setTitle('Apply Products API')
-    .setDescription('A robust NestJS-based REST API for managing product data with automatic synchronization from Contentful CMS. Features include secure authentication, comprehensive product management, automated data synchronization, and professional logging.')
+    .setDescription(
+      'A robust NestJS-based REST API for managing product data with automatic synchronization from Contentful CMS. Features include secure authentication, comprehensive product management, automated data synchronization, and professional logging.',
+    )
     .setVersion('1.0.0')
     .addBearerAuth()
     .addTag('Products', 'Product management operations')

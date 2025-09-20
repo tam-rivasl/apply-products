@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReportsController } from './reports.controller';
-import { ReportsService, OverviewReport, CategoryBreakdown } from './reports.service';
+import {
+  ReportsService,
+  OverviewReport,
+  CategoryBreakdown,
+} from './reports.service';
 
 describe('ReportsController', () => {
   let controller: ReportsController;
@@ -50,7 +54,9 @@ describe('ReportsController', () => {
     ];
     service.byCategory.mockResolvedValue(breakdown);
 
-    await expect(controller.byCategory({ currency: 'USD' } as any)).resolves.toBe(breakdown);
+    await expect(
+      controller.byCategory({ currency: 'USD' } as any),
+    ).resolves.toBe(breakdown);
     expect(service.byCategory).toHaveBeenCalledWith({ currency: 'USD' });
   });
 });

@@ -1,14 +1,18 @@
 import { LoggerService } from './logger.service';
 import { ConfigService } from '@nestjs/config';
 
-const createConfig = (logLevel = 'debug', nodeEnv = 'test'): jest.Mocked<ConfigService> => ({
-  get: jest.fn((key: string) => {
-    if (key === 'LOG_LEVEL') return logLevel;
-    if (key === 'NODE_ENV') return nodeEnv;
-    return undefined;
-  }),
-  getOrThrow: jest.fn(),
-} as unknown as jest.Mocked<ConfigService>);
+const createConfig = (
+  logLevel = 'debug',
+  nodeEnv = 'test',
+): jest.Mocked<ConfigService> =>
+  ({
+    get: jest.fn((key: string) => {
+      if (key === 'LOG_LEVEL') return logLevel;
+      if (key === 'NODE_ENV') return nodeEnv;
+      return undefined;
+    }),
+    getOrThrow: jest.fn(),
+  }) as unknown as jest.Mocked<ConfigService>;
 
 const createUnderlyingLogger = () => ({
   log: jest.fn(),
@@ -36,7 +40,10 @@ describe('LoggerService', () => {
   });
 
   it('formats informational logs with redacted context', () => {
-    service.log('User login', { context: { password: 'secret', userId: '1' }, operation: 'auth.login' });
+    service.log('User login', {
+      context: { password: 'secret', userId: '1' },
+      operation: 'auth.login',
+    });
 
     const message = underlying.log.mock.calls[0][0];
     expect(message).toContain('[LOG]');
@@ -63,7 +70,9 @@ describe('LoggerService', () => {
   });
 
   it('creates child logger that inherits context', () => {
-    const child = service.child({ service: 'ProductsService' }) as LoggerService;
+    const child = service.child({
+      service: 'ProductsService',
+    }) as LoggerService;
     const childUnderlying = createUnderlyingLogger();
     (child as any).logger = childUnderlying;
 
@@ -75,15 +84,21 @@ describe('LoggerService', () => {
 
   it('logs specialized operations and security events', () => {
     service.dbOperation('select', 'products', 50);
-    const dbCall = underlying.debug.mock.calls.find(([msg]) => msg.includes('DB select on products'));
+    const dbCall = underlying.debug.mock.calls.find(([msg]) =>
+      msg.includes('DB select on products'),
+    );
     expect(dbCall).toBeDefined();
 
     service.apiCall('GET', '/products', 200, 30, { attempt: 1 });
-    const apiDebug = underlying.debug.mock.calls.find(([msg]) => msg.includes('API GET /products'));
+    const apiDebug = underlying.debug.mock.calls.find(([msg]) =>
+      msg.includes('API GET /products'),
+    );
     expect(apiDebug).toBeDefined();
 
     service.apiCall('POST', '/products', 500, 40);
-    const apiWarn = underlying.warn.mock.calls.find(([msg]) => msg.includes('API POST /products'));
+    const apiWarn = underlying.warn.mock.calls.find(([msg]) =>
+      msg.includes('API POST /products'),
+    );
     expect(apiWarn).toBeDefined();
 
     service.authEvent('login', 'user-1');

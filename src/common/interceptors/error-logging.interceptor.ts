@@ -31,14 +31,11 @@ export class ErrorLoggingInterceptor implements NestInterceptor {
         };
 
         // Log with NestJS logger
-        this.logger.error(
-          `Request failed: ${method} ${url}`,
-          {
-            ...errorContext,
-            error: error.message,
-            stack: error.stack,
-          },
-        );
+        this.logger.error(`Request failed: ${method} ${url}`, {
+          ...errorContext,
+          error: error.message,
+          stack: error.stack,
+        });
 
         // Log with app logger if available
         if (this.appLogger) {

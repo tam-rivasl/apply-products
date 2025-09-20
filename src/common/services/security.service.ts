@@ -19,7 +19,10 @@ export interface RateLimitConfig {
 
 @Injectable()
 export class SecurityService {
-  private readonly rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+  private readonly rateLimitStore = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
   private readonly suspiciousIPs = new Set<string>();
   private readonly blockedIPs = new Set<string>();
 
@@ -51,7 +54,6 @@ export class SecurityService {
     context?: Record<string, any>,
   ): { allowed: boolean; remaining: number; resetTime: number } {
     const now = Date.now();
-    const windowStart = now - config.windowMs;
     const entry = this.rateLimitStore.get(key);
 
     if (!entry || entry.resetTime < now) {
@@ -164,7 +166,7 @@ export class SecurityService {
    */
   validateJWTFormat(token: string): boolean {
     const parts = token.split('.');
-    return parts.length === 3 && parts.every(part => part.length > 0);
+    return parts.length === 3 && parts.every((part) => part.length > 0);
   }
 
   /**
@@ -182,13 +184,14 @@ export class SecurityService {
    * Generate secure random string
    */
   generateSecureToken(length = 32): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
-    
+
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     return result;
   }
 
@@ -200,7 +203,7 @@ export class SecurityService {
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(16);
@@ -221,7 +224,7 @@ export class SecurityService {
       /(\b(OR|AND)\s+['"]\s*NOT\s+EXISTS\s*\()/i,
     ];
 
-    return sqlPatterns.some(pattern => pattern.test(input));
+    return sqlPatterns.some((pattern) => pattern.test(input));
   }
 
   /**
@@ -239,7 +242,7 @@ export class SecurityService {
       /on\w+\s*=/gi,
     ];
 
-    return xssPatterns.some(pattern => pattern.test(input));
+    return xssPatterns.some((pattern) => pattern.test(input));
   }
 
   /**

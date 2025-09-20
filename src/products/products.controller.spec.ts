@@ -42,7 +42,10 @@ describe('ProductsController', () => {
     const dto = { contentfulId: 'c-1', name: 'Mouse' } as CreateProductDto;
     service.create.mockResolvedValue({ id: 'p-1', ...dto });
 
-    await expect(controller.create(dto)).resolves.toEqual({ id: 'p-1', ...dto });
+    await expect(controller.create(dto)).resolves.toEqual({
+      id: 'p-1',
+      ...dto,
+    });
     expect(service.create).toHaveBeenCalledWith(dto);
   });
 

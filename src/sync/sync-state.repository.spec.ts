@@ -18,7 +18,9 @@ describe('SyncStateRepository', () => {
     ormRepo = {
       findOne: jest.fn(),
       findOneOrFail: jest.fn().mockResolvedValue(baseState),
-      create: jest.fn().mockImplementation((data) => ({ ...baseState, ...data })),
+      create: jest
+        .fn()
+        .mockImplementation((data) => ({ ...baseState, ...data })),
       save: jest.fn().mockResolvedValue(baseState),
     };
 
@@ -31,16 +33,27 @@ describe('SyncStateRepository', () => {
 
     const state = await repository.getOrCreate('contentful');
 
-    expect(ormRepo.create).toHaveBeenCalledWith({ source: 'contentful', lastUpdatedAt: null });
+    expect(ormRepo.create).toHaveBeenCalledWith({
+      source: 'contentful',
+      lastUpdatedAt: null,
+    });
     expect(ormRepo.save).toHaveBeenCalled();
     expect(state.source).toBe('contentful');
   });
 
   it('returns cursor as date or null', async () => {
-    ormRepo.findOne.mockResolvedValueOnce({ ...baseState, lastUpdatedAt: new Date('2024-01-01') });
-    await expect(repository.getCursor('contentful')).resolves.toEqual(new Date('2024-01-01'));
+    ormRepo.findOne.mockResolvedValueOnce({
+      ...baseState,
+      lastUpdatedAt: new Date('2024-01-01'),
+    });
+    await expect(repository.getCursor('contentful')).resolves.toEqual(
+      new Date('2024-01-01'),
+    );
 
-    ormRepo.findOne.mockResolvedValueOnce({ ...baseState, lastUpdatedAt: null });
+    ormRepo.findOne.mockResolvedValueOnce({
+      ...baseState,
+      lastUpdatedAt: null,
+    });
     await expect(repository.getCursor('contentful')).resolves.toBeNull();
   });
 
@@ -49,7 +62,9 @@ describe('SyncStateRepository', () => {
     const newer = new Date('2024-02-01T00:00:00.000Z');
 
     const trxRepo = {
-      findOne: jest.fn().mockResolvedValue({ ...baseState, lastUpdatedAt: current }),
+      findOne: jest
+        .fn()
+        .mockResolvedValue({ ...baseState, lastUpdatedAt: current }),
       create: jest.fn().mockReturnValue(baseState),
       save: jest.fn().mockResolvedValue(baseState),
     };
@@ -61,10 +76,12 @@ describe('SyncStateRepository', () => {
       execute: jest.fn().mockResolvedValue({}),
     };
 
-    dataSource.transaction.mockImplementation(async (cb: any) => cb({
-      getRepository: () => trxRepo,
-      createQueryBuilder: () => qb,
-    }));
+    dataSource.transaction.mockImplementation(async (cb: any) =>
+      cb({
+        getRepository: () => trxRepo,
+        createQueryBuilder: () => qb,
+      }),
+    );
 
     await repository.bumpIfLater('contentful', newer);
     expect(qb.execute).toHaveBeenCalled();

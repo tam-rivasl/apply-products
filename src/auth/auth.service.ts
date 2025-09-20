@@ -23,9 +23,9 @@ export class AuthService {
     const payload = { sub: email, email };
     const access_token = this.jwt.sign(payload);
 
-    this.logger.authEvent('Login successful', email, { 
+    this.logger.authEvent('Login successful', email, {
       tokenGenerated: true,
-      expiresIn: this.jwt['options']?.expiresIn || '1h'
+      expiresIn: this.jwt['options']?.expiresIn || '1h',
     });
 
     return { access_token };

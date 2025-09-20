@@ -5,11 +5,12 @@ import { throwError } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
 
 describe('ErrorLoggingInterceptor', () => {
-  const createContext = (req: any): ExecutionContext => ({
-    switchToHttp: () => ({
-      getRequest: () => req,
-    }),
-  }) as unknown as ExecutionContext;
+  const createContext = (req: any): ExecutionContext =>
+    ({
+      switchToHttp: () => ({
+        getRequest: () => req,
+      }),
+    }) as unknown as ExecutionContext;
 
   const baseRequest = {
     method: 'GET',
@@ -30,9 +31,13 @@ describe('ErrorLoggingInterceptor', () => {
   });
 
   it('logs generic errors', async () => {
-    const handler: CallHandler = { handle: () => throwError(() => new Error('Boom')) };
+    const handler: CallHandler = {
+      handle: () => throwError(() => new Error('Boom')),
+    };
 
-    await expect(lastValueFrom(interceptor.intercept(createContext(baseRequest), handler))).rejects.toThrow('Boom');
+    await expect(
+      lastValueFrom(interceptor.intercept(createContext(baseRequest), handler)),
+    ).rejects.toThrow('Boom');
     expect(nestLogger.error).toHaveBeenCalledWith(
       'Request failed: GET /fail',
       expect.objectContaining({ error: 'Boom' }),
@@ -47,10 +52,14 @@ describe('ErrorLoggingInterceptor', () => {
     const exception = new BadRequestException('Invalid');
     const handler: CallHandler = { handle: () => throwError(() => exception) };
 
-    await expect(lastValueFrom(interceptor.intercept(createContext(baseRequest), handler))).rejects.toThrow('Invalid');
+    await expect(
+      lastValueFrom(interceptor.intercept(createContext(baseRequest), handler)),
+    ).rejects.toThrow('Invalid');
     expect(appLogger.error).toHaveBeenCalledWith(
       'Request failed: GET /fail',
-      expect.objectContaining({ context: expect.objectContaining({ method: 'GET', url: '/fail' }) }),
+      expect.objectContaining({
+        context: expect.objectContaining({ method: 'GET', url: '/fail' }),
+      }),
     );
   });
 });

@@ -26,9 +26,9 @@ export default new DataSource({
   extra: {
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 10000,
-    max: Number(process.env.DB_POOL_MAX ?? 10)
+    max: Number(process.env.DB_POOL_MAX ?? 10),
   },
   ssl: /^true$/i.test(process.env.DB_SSL ?? 'false')
     ? { rejectUnauthorized: false }
-    : false
+    : false,
 });

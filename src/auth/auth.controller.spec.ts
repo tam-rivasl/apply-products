@@ -19,7 +19,9 @@ describe('AuthController', () => {
   it('delegates login to service with provided email', async () => {
     service.login.mockResolvedValue({ access_token: 'token' });
 
-    await expect(controller.login({ email: 'user@example.com' })).resolves.toEqual({ access_token: 'token' });
+    await expect(
+      controller.login({ email: 'user@example.com' }),
+    ).resolves.toEqual({ access_token: 'token' });
     expect(service.login).toHaveBeenCalledWith('user@example.com');
   });
 

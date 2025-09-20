@@ -16,14 +16,15 @@ export class RequestLoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
-    
-    const { method, originalUrl, url, headers, body, query, params, ip, user } = request;
+
+    const { method, originalUrl, url, headers, body, query, params, ip, user } =
+      request;
     const userAgent = headers['user-agent'] || 'unknown';
     const traceId = this.generateTraceId();
-    
+
     // Add trace ID to request for correlation
     (request as any).traceId = traceId;
-    
+
     const startTime = Date.now();
 
     // Log request start
@@ -39,7 +40,9 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         headers: this.sanitizeHeaders(headers),
         params: Object.keys(params).length > 0 ? redact(params) : undefined,
         query: Object.keys(query).length > 0 ? redact(query) : undefined,
-        body: this.shouldLogBody(method, originalUrl || url) ? redact(body) : undefined,
+        body: this.shouldLogBody(method, originalUrl || url)
+          ? redact(body)
+          : undefined,
       },
     });
 
@@ -47,45 +50,54 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       tap((responseData) => {
         const duration = Date.now() - startTime;
         const statusCode = response.statusCode;
-        
+
         // Determine log level based on status code
-        const level = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'log';
-        
-        this.logger[level](`📤 ${method} ${originalUrl || url} - ${statusCode}`, {
-          operation: 'http.response',
-          traceId,
-          userId: (user as any)?.id || (user as any)?.sub,
-          duration,
-          context: {
-            method,
-            url: originalUrl || url,
-            statusCode,
+        const level =
+          statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'log';
+
+        this.logger[level](
+          `📤 ${method} ${originalUrl || url} - ${statusCode}`,
+          {
+            operation: 'http.response',
+            traceId,
+            userId: (user as any)?.id || (user as any)?.sub,
             duration,
-            responseSize: this.getResponseSize(responseData),
-            ...(this.shouldLogResponse(originalUrl || url) && { response: redact(responseData) }),
+            context: {
+              method,
+              url: originalUrl || url,
+              statusCode,
+              duration,
+              responseSize: this.getResponseSize(responseData),
+              ...(this.shouldLogResponse(originalUrl || url) && {
+                response: redact(responseData),
+              }),
+            },
           },
-        });
+        );
       }),
       catchError((error) => {
         const duration = Date.now() - startTime;
         const statusCode = error.status || 500;
-        
-        this.logger.error(`💥 ${method} ${originalUrl || url} - ${statusCode}`, {
-          operation: 'http.error',
-          traceId,
-          userId: (user as any)?.id || (user as any)?.sub,
-          error,
-          duration,
-          context: {
-            method,
-            url: originalUrl || url,
-            statusCode,
+
+        this.logger.error(
+          `💥 ${method} ${originalUrl || url} - ${statusCode}`,
+          {
+            operation: 'http.error',
+            traceId,
+            userId: (user as any)?.id || (user as any)?.sub,
+            error,
             duration,
-            errorType: error.constructor.name,
-            errorMessage: error.message,
+            context: {
+              method,
+              url: originalUrl || url,
+              statusCode,
+              duration,
+              errorType: error.constructor.name,
+              errorMessage: error.message,
+            },
           },
-        });
-        
+        );
+
         throw error;
       }),
     );
@@ -97,7 +109,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
   private sanitizeHeaders(headers: any): any {
     const sanitized = { ...headers };
-    
+
     // Remove sensitive headers
     const sensitiveHeaders = [
       'authorization',
@@ -106,21 +118,27 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       'x-auth-token',
       'x-access-token',
     ];
-    
-    sensitiveHeaders.forEach(header => {
+
+    sensitiveHeaders.forEach((header) => {
       if (sanitized[header]) {
         sanitized[header] = '[REDACTED]';
       }
     });
-    
+
     return sanitized;
   }
 
   private shouldLogBody(method: string, url: string): boolean {
     // Don't log body for sensitive endpoints
-    const sensitiveEndpoints = ['/auth/login', '/auth/register', '/auth/change-password'];
-    const isSensitive = sensitiveEndpoints.some(endpoint => url.includes(endpoint));
-    
+    const sensitiveEndpoints = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/change-password',
+    ];
+    const isSensitive = sensitiveEndpoints.some((endpoint) =>
+      url.includes(endpoint),
+    );
+
     // Only log body for POST, PUT, PATCH requests and non-sensitive endpoints
     return ['POST', 'PUT', 'PATCH'].includes(method) && !isSensitive;
   }
@@ -128,7 +146,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
   private shouldLogResponse(url: string): boolean {
     // Don't log response for sensitive endpoints
     const sensitiveEndpoints = ['/auth/login', '/auth/register'];
-    return !sensitiveEndpoints.some(endpoint => url.includes(endpoint));
+    return !sensitiveEndpoints.some((endpoint) => url.includes(endpoint));
   }
 
   private getResponseSize(responseData: any): number {

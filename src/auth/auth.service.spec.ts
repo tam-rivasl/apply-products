@@ -16,9 +16,10 @@ describe('AuthService', () => {
   let jwt: jest.Mocked<JwtService>;
   let loggerInstance: any;
 
-  const mockJwtService = (): jest.Mocked<JwtService> => ({
-    sign: jest.fn(),
-  } as unknown as jest.Mocked<JwtService>);
+  const mockJwtService = (): jest.Mocked<JwtService> =>
+    ({
+      sign: jest.fn(),
+    }) as unknown as jest.Mocked<JwtService>;
 
   const mockConfigService = {
     get: jest.fn().mockImplementation((key: string) => {
@@ -71,9 +72,22 @@ describe('AuthService', () => {
     const result = await service.login('user@example.com');
 
     expect(LoggerServiceMock).toHaveBeenCalledTimes(1);
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'user@example.com', email: 'user@example.com' });
-    expect(loggerInstance.authEvent).toHaveBeenNthCalledWith(1, 'Login attempt', undefined, { email: 'user@example.com' });
-    expect(loggerInstance.authEvent).toHaveBeenNthCalledWith(2, 'Login successful', 'user@example.com', expect.objectContaining({ tokenGenerated: true }));
+    expect(jwt.sign).toHaveBeenCalledWith({
+      sub: 'user@example.com',
+      email: 'user@example.com',
+    });
+    expect(loggerInstance.authEvent).toHaveBeenNthCalledWith(
+      1,
+      'Login attempt',
+      undefined,
+      { email: 'user@example.com' },
+    );
+    expect(loggerInstance.authEvent).toHaveBeenNthCalledWith(
+      2,
+      'Login successful',
+      'user@example.com',
+      expect.objectContaining({ tokenGenerated: true }),
+    );
     expect(result).toEqual({ access_token: 'signed-token' });
   });
 
@@ -82,6 +96,9 @@ describe('AuthService', () => {
 
     await service.login();
 
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'test@example.com', email: 'test@example.com' });
+    expect(jwt.sign).toHaveBeenCalledWith({
+      sub: 'test@example.com',
+      email: 'test@example.com',
+    });
   });
 });

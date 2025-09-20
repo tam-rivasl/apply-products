@@ -1,13 +1,19 @@
-import { ArgumentsHost, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import { GlobalExceptionFilter } from './global-exception.filter';
 
 describe('GlobalExceptionFilter', () => {
-  const createHost = (request: Partial<any>, response: any): ArgumentsHost => ({
-    switchToHttp: () => ({
-      getRequest: () => request,
-      getResponse: () => response,
-    }),
-  }) as unknown as ArgumentsHost;
+  const createHost = (request: Partial<any>, response: any): ArgumentsHost =>
+    ({
+      switchToHttp: () => ({
+        getRequest: () => request,
+        getResponse: () => response,
+      }),
+    }) as unknown as ArgumentsHost;
 
   const baseRequest = {
     url: '/test',
@@ -52,14 +58,22 @@ describe('GlobalExceptionFilter', () => {
   });
 
   it('handles HttpException payloads', () => {
-    const exception = new HttpException({ message: 'Forbidden', details: { reason: 'nope' } }, HttpStatus.FORBIDDEN);
+    const exception = new HttpException(
+      { message: 'Forbidden', details: { reason: 'nope' } },
+      HttpStatus.FORBIDDEN,
+    );
     const host = createHost(baseRequest, response);
 
     filter.catch(exception, host);
 
     expect(response.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
     expect(response.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.objectContaining({ message: 'Forbidden', details: { message: 'Forbidden', details: { reason: 'nope' } } }) }),
+      expect.objectContaining({
+        error: expect.objectContaining({
+          message: 'Forbidden',
+          details: { message: 'Forbidden', details: { reason: 'nope' } },
+        }),
+      }),
     );
     expect(appLogger.error).toHaveBeenCalled();
   });
@@ -70,9 +84,13 @@ describe('GlobalExceptionFilter', () => {
 
     filter.catch(error, host);
 
-    expect(response.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(response.status).toHaveBeenCalledWith(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
     expect(response.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.objectContaining({ message: 'Internal server error' }) }),
+      expect.objectContaining({
+        error: expect.objectContaining({ message: 'Internal server error' }),
+      }),
     );
     expect(nestLogger.error).toHaveBeenCalledWith(
       expect.stringContaining('Unknown error'),

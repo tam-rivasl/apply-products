@@ -35,14 +35,22 @@ describe('SecurityService', () => {
   it('blocks IPs on explicit call and records stats', () => {
     service.blockIP('10.0.0.1', 'Test');
     expect(service.isIPBlocked('10.0.0.1')).toBe(true);
-    expect(service.getSecurityStats()).toEqual({ blockedIPs: 1, suspiciousIPs: 0, rateLimitEntries: 0 });
+    expect(service.getSecurityStats()).toEqual({
+      blockedIPs: 1,
+      suspiciousIPs: 0,
+      rateLimitEntries: 0,
+    });
   });
 
   it('marks IP suspicious and auto blocks on critical events', () => {
     service.markIPSuspicious('10.0.0.2', 'UA');
     expect(service.getSecurityStats().suspiciousIPs).toBe(1);
 
-    service.logSecurityEvent({ event: 'Critical', severity: SecuritySeverity.CRITICAL, ip: '1.1.1.1' });
+    service.logSecurityEvent({
+      event: 'Critical',
+      severity: SecuritySeverity.CRITICAL,
+      ip: '1.1.1.1',
+    });
     expect(service.isIPBlocked('1.1.1.1')).toBe(true);
   });
 
@@ -53,17 +61,23 @@ describe('SecurityService', () => {
 
     const cleaned = service.cleanExpiredRateLimits();
     expect(cleaned).toBe(1);
-    expect(logger.log).toHaveBeenCalledWith('Cleaned 1 expired rate limit entries');
+    expect(logger.log).toHaveBeenCalledWith(
+      'Cleaned 1 expired rate limit entries',
+    );
     nowSpy.mockRestore();
   });
 
   it('detects SQLi and XSS patterns', () => {
-    expect(service.detectSQLInjection("SELECT * FROM users WHERE 'a'='a'")).toBe(true);
+    expect(
+      service.detectSQLInjection("SELECT * FROM users WHERE 'a'='a'"),
+    ).toBe(true);
     expect(service.detectXSS('<script>alert(1)</script>')).toBe(true);
   });
 
   it('sanitizes input and hashes sensitive data', () => {
-    expect(service.sanitizeInput(' <script>hi</script> ')).toBe('scripthi/script');
+    expect(service.sanitizeInput(' <script>hi</script> ')).toBe(
+      'scripthi/script',
+    );
     expect(service.hashSensitiveData('secret')).toMatch(/^[a-f0-9]+$/);
   });
 

@@ -9,7 +9,7 @@ import { LoggerService } from '../common/services/logger.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Product])],
   providers: [
-    ProductsRepository, 
+    ProductsRepository,
     ProductsService,
     {
       provide: 'ILoggerService',

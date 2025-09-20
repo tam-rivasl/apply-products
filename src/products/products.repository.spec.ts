@@ -4,10 +4,23 @@ import { Product } from './entities/product.entity';
 describe('ProductsRepository', () => {
   let repo: ProductsRepository;
   let dataSource: any;
-  const baseState = { id: '1', contentfulId: '1', name: 'Item', createdAt: new Date(), updatedAt: new Date() } as any;
+  const baseState = {
+    id: '1',
+    contentfulId: '1',
+    name: 'Item',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any;
   const metadata = {
-    columns: ['name', 'category', 'brand', 'model', 'color', 'currency', 'sku']
-      .map((propertyName) => ({ propertyName, propertyPath: propertyName })),
+    columns: [
+      'name',
+      'category',
+      'brand',
+      'model',
+      'color',
+      'currency',
+      'sku',
+    ].map((propertyName) => ({ propertyName, propertyPath: propertyName })),
     findColumnWithPropertyName(prop: string) {
       return this.columns.find((c: any) => c.propertyName === prop) ?? null;
     },
@@ -35,7 +48,11 @@ describe('ProductsRepository', () => {
     };
     jest.spyOn(repo as any, 'createQueryBuilder').mockReturnValue(qb);
 
-    const result = await repo.search({ name: 'Lap', brand: 'Dell', select: ['name', 'unknown'] } as any, 0, 5);
+    const result = await repo.search(
+      { name: 'Lap', brand: 'Dell', select: ['name', 'unknown'] } as any,
+      0,
+      5,
+    );
 
     expect(qb.andWhere).toHaveBeenCalled();
     expect(qb.select).toHaveBeenCalledWith(['p.name']);
@@ -53,25 +70,39 @@ describe('ProductsRepository', () => {
     };
     jest.spyOn(repo as any, 'createQueryBuilder').mockReturnValue(qb);
 
-    await expect(repo.softDeleteById('1')).resolves.toEqual({ id: '1', deleted: true });
+    await expect(repo.softDeleteById('1')).resolves.toEqual({
+      id: '1',
+      deleted: true,
+    });
     qb.execute.mockResolvedValue({ affected: 0 });
-    await expect(repo.softDeleteById('missing')).rejects.toThrow('Product not found');
+    await expect(repo.softDeleteById('missing')).rejects.toThrow(
+      'Product not found',
+    );
   });
 
   it('patches product fields and reuses findActiveByIdOrThrow', async () => {
-    jest.spyOn(repo, 'findActiveByIdOrThrow').mockResolvedValue({ id: '1' } as Product);
+    jest
+      .spyOn(repo, 'findActiveByIdOrThrow')
+      .mockResolvedValue({ id: '1' } as Product);
     const qb = {
       update: jest.fn().mockReturnThis(),
       set: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       returning: jest.fn().mockReturnThis(),
-      execute: jest.fn().mockResolvedValue({ raw: [{ id: '1', name: 'Updated' }] }),
+      execute: jest
+        .fn()
+        .mockResolvedValue({ raw: [{ id: '1', name: 'Updated' }] }),
     };
     jest.spyOn(repo as any, 'createQueryBuilder').mockReturnValue(qb);
 
-    const patched = await repo.patchById('1', { name: 'Updated', invalid: 'ignored' });
-    expect(qb.set).toHaveBeenCalledWith(expect.objectContaining({ name: 'Updated' }));
+    const patched = await repo.patchById('1', {
+      name: 'Updated',
+      invalid: 'ignored',
+    });
+    expect(qb.set).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Updated' }),
+    );
     expect(patched).toEqual({ id: '1', name: 'Updated' });
   });
 
@@ -91,19 +122,26 @@ describe('ProductsRepository', () => {
       execute: jest.fn().mockResolvedValue({}),
     };
 
-    (dataSource.transaction as jest.Mock).mockImplementation(async (cb: any) => cb({
-      getRepository: () => ({
-        findOne: jest.fn().mockResolvedValue({ ...baseState, lastUpdatedAt: null }),
-        create: jest.fn().mockImplementation((data) => data),
-        save: jest.fn().mockResolvedValue({}),
+    (dataSource.transaction as jest.Mock).mockImplementation(async (cb: any) =>
+      cb({
+        getRepository: () => ({
+          findOne: jest
+            .fn()
+            .mockResolvedValue({ ...baseState, lastUpdatedAt: null }),
+          create: jest.fn().mockImplementation((data) => data),
+          save: jest.fn().mockResolvedValue({}),
+        }),
+        createQueryBuilder: jest
+          .fn()
+          .mockReturnValueOnce(updateBuilder)
+          .mockReturnValueOnce(insertBuilder),
       }),
-      createQueryBuilder: jest
-        .fn()
-        .mockReturnValueOnce(updateBuilder)
-        .mockReturnValueOnce(insertBuilder),
-    }));
+    );
 
-    await repo.upsertFromContentfulSafe({ contentfulId: '1', name: 'Item' } as any);
+    await repo.upsertFromContentfulSafe({
+      contentfulId: '1',
+      name: 'Item',
+    } as any);
     expect(updateBuilder.execute).toHaveBeenCalled();
     expect(insertBuilder.execute).toHaveBeenCalled();
   });

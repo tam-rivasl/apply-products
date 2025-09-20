@@ -1,8 +1,23 @@
-import { Injectable, LoggerService as NestLoggerService, LogLevel } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  LoggerService as NestLoggerService,
+  LogLevel,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { redact, safeStringify } from '../utils/logsafe';
-import { ILoggerService, LogContext, LogEntry, LogOptions } from '../interfaces/logger.interface';
-import { LOG_LEVELS, LOG_OPERATIONS, SECURITY_SEVERITY, CACHE_OPERATIONS } from '../constants';
+import {
+  ILoggerService,
+  LogContext,
+  LogEntry,
+  LogOptions,
+} from '../interfaces/logger.interface';
+import {
+  LOG_LEVELS,
+  LOG_OPERATIONS,
+  SECURITY_SEVERITY,
+  CACHE_OPERATIONS,
+} from '../constants';
 
 @Injectable()
 export class LoggerService implements NestLoggerService, ILoggerService {
@@ -11,7 +26,7 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   private readonly logLevel: LogLevel;
 
   constructor(private readonly configService: ConfigService) {
-    this.logger = new (require('@nestjs/common').Logger)();
+    this.logger = new Logger();
     this.isDevelopment = this.configService.get('NODE_ENV') === 'development';
     this.logLevel = this.configService.get('LOG_LEVEL') || LOG_LEVELS.LOG;
   }
@@ -61,7 +76,11 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   /**
    * Log business operation start
    */
-  operationStart(operation: string, context?: LogContext, traceId?: string): void {
+  operationStart(
+    operation: string,
+    context?: LogContext,
+    traceId?: string,
+  ): void {
     this.log(`🚀 Starting operation: ${operation}`, {
       operation,
       context,
@@ -157,10 +176,16 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   /**
    * Log security events
    */
-  securityEvent(event: string, severity: 'low' | 'medium' | 'high' | 'critical', context?: LogContext): void {
-    const level = severity === SECURITY_SEVERITY.CRITICAL || severity === SECURITY_SEVERITY.HIGH 
-      ? LOG_LEVELS.ERROR 
-      : LOG_LEVELS.WARN;
+  securityEvent(
+    event: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    context?: LogContext,
+  ): void {
+    const level =
+      severity === SECURITY_SEVERITY.CRITICAL ||
+      severity === SECURITY_SEVERITY.HIGH
+        ? LOG_LEVELS.ERROR
+        : LOG_LEVELS.WARN;
     this[level](`🛡️ Security: ${event}`, {
       operation: LOG_OPERATIONS.SECURITY,
       context: { ...context, severity },
@@ -170,7 +195,12 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   /**
    * Log performance metrics
    */
-  performance(metric: string, value: number, unit: string, context?: LogContext): void {
+  performance(
+    metric: string,
+    value: number,
+    unit: string,
+    context?: LogContext,
+  ): void {
     this.debug(`📊 Performance: ${metric}`, {
       operation: LOG_OPERATIONS.PERFORMANCE,
       context: { ...context, metric, value, unit },
@@ -180,7 +210,12 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   /**
    * Log data validation issues
    */
-  validationError(field: string, value: any, rule: string, context?: LogContext): void {
+  validationError(
+    field: string,
+    value: any,
+    rule: string,
+    context?: LogContext,
+  ): void {
     this.warn(`⚠️ Validation failed: ${field}`, {
       operation: LOG_OPERATIONS.VALIDATION,
       context: {
@@ -195,10 +230,17 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   /**
    * Log cache operations
    */
-  cacheOperation(operation: 'hit' | 'miss' | 'set' | 'delete', key: string, context?: LogContext): void {
-    const emoji = operation === CACHE_OPERATIONS.HIT ? '💚' 
-      : operation === CACHE_OPERATIONS.MISS ? '💔' 
-      : '💾';
+  cacheOperation(
+    operation: 'hit' | 'miss' | 'set' | 'delete',
+    key: string,
+    context?: LogContext,
+  ): void {
+    const emoji =
+      operation === CACHE_OPERATIONS.HIT
+        ? '💚'
+        : operation === CACHE_OPERATIONS.MISS
+          ? '💔'
+          : '💾';
     this.debug(`${emoji} Cache ${operation}: ${key}`, {
       operation: LOG_OPERATIONS.CACHE,
       context: { ...context, key, operation },
@@ -217,7 +259,11 @@ export class LoggerService implements NestLoggerService, ILoggerService {
   /**
    * Internal method to write logs with consistent formatting
    */
-  private writeLog(level: LogLevel, message: string, options?: LogOptions): void {
+  private writeLog(
+    level: LogLevel,
+    message: string,
+    options?: LogOptions,
+  ): void {
     if (!this.shouldLog(level)) return;
 
     const logEntry: LogEntry = {

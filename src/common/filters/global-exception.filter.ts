@@ -47,7 +47,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ok: false,
         error: {
           statusCode: exception.getStatus(),
-          message: typeof response === 'string' ? response : (response as any).message,
+          message:
+            typeof response === 'string' ? response : (response as any).message,
           path,
           method,
           timestamp,
@@ -105,10 +106,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
 
       if (this.appLogger) {
-        this.appLogger.error(`Unknown error: ${error.message || 'Unknown error occurred'}`, {
-          context: errorContext,
-          error,
-        });
+        this.appLogger.error(
+          `Unknown error: ${error.message || 'Unknown error occurred'}`,
+          {
+            context: errorContext,
+            error,
+          },
+        );
       }
     }
   }

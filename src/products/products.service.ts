@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { FindProductsQueryDto } from './dto/find-products-query.dto';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -21,9 +21,9 @@ export class ProductsService implements IProductsService {
   @LogBusinessOperation('products.findAll')
   async findAll(filters: FindProductsQueryDto): Promise<FindProductsResult> {
     this.logger.log('Searching products with filters', {
-      context: { 
+      context: {
         filters: { ...filters, limit: Math.min(filters.limit || 5, 5) },
-        operation: 'products.findAll'
+        operation: 'products.findAll',
       },
     });
 
@@ -34,14 +34,14 @@ export class ProductsService implements IProductsService {
     );
 
     const { items, total } = await this.repo.search(filters, offset, limit);
-    
+
     this.logger.debug(`Found ${items.length} products out of ${total}`, {
-      context: { 
-        count: items.length, 
-        total, 
-        offset, 
+      context: {
+        count: items.length,
+        total,
+        offset,
         limit,
-        operation: 'products.findAll'
+        operation: 'products.findAll',
       },
     });
 
@@ -56,20 +56,20 @@ export class ProductsService implements IProductsService {
   @LogBusinessOperation('products.create')
   async create(dto: CreateProductDto) {
     this.logger.log('Creating new product', {
-      context: { 
-        productName: dto.name, 
+      context: {
+        productName: dto.name,
         sku: dto.sku,
-        operation: 'products.create'
+        operation: 'products.create',
       },
     });
 
     const product = await this.repo.createOne(dto);
-    
+
     this.logger.log(SUCCESS_MESSAGES.PRODUCT_CREATED, {
-      context: { 
-        productId: product.id, 
+      context: {
+        productId: product.id,
         productName: product.name,
-        operation: 'products.create'
+        operation: 'products.create',
       },
     });
 
@@ -88,7 +88,7 @@ export class ProductsService implements IProductsService {
       patch.currency = dto.currency.toUpperCase();
 
     const updated = await this.repo.patchById(id, patch);
-    
+
     this.logger.log('Product updated successfully', {
       context: { productId: id, updatedFields: Object.keys(dto) },
     });
@@ -105,7 +105,7 @@ export class ProductsService implements IProductsService {
     });
 
     const result = await this.repo.softDeleteById(id);
-    
+
     this.logger.log('Product deleted successfully', {
       context: { productId: id, deleted: result.deleted },
     });

@@ -28,7 +28,11 @@ describe('ContentfulClient', () => {
     setupHttp(get);
 
     const client = new ContentfulClient(baseOptions);
-    await client.listProducts({ limit: 10, skip: 5, updatedAtGte: '2025-09-18T00:00:00.000Z' });
+    await client.listProducts({
+      limit: 10,
+      skip: 5,
+      updatedAtGte: '2025-09-18T00:00:00.000Z',
+    });
 
     expect(mockedAxios.create).toHaveBeenCalledWith(
       expect.objectContaining({

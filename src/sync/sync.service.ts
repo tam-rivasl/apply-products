@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { SyncStateRepository } from './sync-state.repository';
 import { CtfEntry, CtfProductFields } from './types/contentful';
 import { LoggerService } from '../common/services/logger.service';
-import { LogBusinessOperation, LogApiCall } from '../common/decorators/log-method.decorator';
+import { LogBusinessOperation } from '../common/decorators/log-method.decorator';
 
 // 👇 importa tus helpers
 import {
@@ -75,14 +75,17 @@ export class SyncService {
 
         if (!page.items?.length) break;
 
-        this.appLogger.debug(`Processing page ${Math.floor(skip / this.pageSize) + 1}`, {
-          context: { 
-            skip, 
-            pageSize: this.pageSize, 
-            itemsInPage: page.items.length,
-            total: page.total 
+        this.appLogger.debug(
+          `Processing page ${Math.floor(skip / this.pageSize) + 1}`,
+          {
+            context: {
+              skip,
+              pageSize: this.pageSize,
+              itemsInPage: page.items.length,
+              total: page.total,
+            },
           },
-        });
+        );
 
         for (const entry of page.items) {
           await this.applyEntry(entry);
@@ -104,13 +107,17 @@ export class SyncService {
         lastUpdatedAt: cursor?.toISOString(),
         maxUpdated: maxUpdated?.toISOString(),
       });
-
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.appLogger.operationFailed('Contentful sync', error as Error, duration, {
-        processed,
-        skip,
-      });
+      this.appLogger.operationFailed(
+        'Contentful sync',
+        error as Error,
+        duration,
+        {
+          processed,
+          skip,
+        },
+      );
       throw error;
     }
   }
@@ -119,10 +126,10 @@ export class SyncService {
     const f = entry.fields || ({} as CtfProductFields);
 
     this.appLogger.debug('Processing Contentful entry', {
-      context: { 
-        contentfulId: entry.sys.id, 
+      context: {
+        contentfulId: entry.sys.id,
         name: f.name,
-        updatedAt: entry.sys.updatedAt 
+        updatedAt: entry.sys.updatedAt,
       },
     });
 
@@ -151,20 +158,20 @@ export class SyncService {
 
     try {
       await this.productsRepo.upsertFromContentfulSafe(payload);
-      
+
       this.appLogger.debug('Contentful entry processed successfully', {
-        context: { 
-          contentfulId: entry.sys.id, 
+        context: {
+          contentfulId: entry.sys.id,
           name: payload.name,
-          sku: payload.sku 
+          sku: payload.sku,
         },
       });
     } catch (error) {
       this.appLogger.error('Failed to process Contentful entry', {
         error: error as Error,
-        context: { 
-          contentfulId: entry.sys.id, 
-          name: f.name 
+        context: {
+          contentfulId: entry.sys.id,
+          name: f.name,
         },
       });
       throw error;

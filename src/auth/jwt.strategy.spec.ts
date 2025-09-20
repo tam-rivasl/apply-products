@@ -13,6 +13,8 @@ describe('JwtStrategy', () => {
 
   it('validates payload and exposes user info', async () => {
     const strategy = new JwtStrategy();
-    await expect(strategy.validate({ sub: '1', email: 'user@example.com' })).resolves.toEqual({ sub: '1', email: 'user@example.com' });
+    await expect(
+      strategy.validate({ sub: '1', email: 'user@example.com' }),
+    ).resolves.toEqual({ sub: '1', email: 'user@example.com' });
   });
 });

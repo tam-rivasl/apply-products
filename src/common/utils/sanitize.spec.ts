@@ -52,7 +52,9 @@ describe('sanitize utils', () => {
     expect(normalizeCurrency(' cLp$ ')).toBe('CLP');
     expect(normalizeSku(' sku-123 ')).toBe('SKU-123');
     expect(normalizeNameOrNull('   ')).toBeNull();
-    expect(normalizeNameOrNull('Very long '.padEnd(205, 'x'))).toHaveLength(200);
+    expect(normalizeNameOrNull('Very long '.padEnd(205, 'x'))).toHaveLength(
+      200,
+    );
   });
 
   it('provides legacy sanitize helpers', () => {

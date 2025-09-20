@@ -38,19 +38,63 @@ export interface ILoggerService {
   debug(message: string, options?: LogOptions): void;
   verbose(message: string, options?: LogOptions): void;
   fatal(message: string, options?: LogOptions): void;
-  
+
   // Specialized logging methods
-  operationStart(operation: string, context?: LogContext, traceId?: string): void;
-  operationComplete(operation: string, duration: number, context?: LogContext, traceId?: string): void;
-  operationFailed(operation: string, error: Error, duration?: number, context?: LogContext, traceId?: string): void;
-  dbOperation(operation: string, table: string, duration: number, context?: LogContext): void;
-  apiCall(method: string, url: string, statusCode: number, duration: number, context?: LogContext): void;
+  operationStart(
+    operation: string,
+    context?: LogContext,
+    traceId?: string,
+  ): void;
+  operationComplete(
+    operation: string,
+    duration: number,
+    context?: LogContext,
+    traceId?: string,
+  ): void;
+  operationFailed(
+    operation: string,
+    error: Error,
+    duration?: number,
+    context?: LogContext,
+    traceId?: string,
+  ): void;
+  dbOperation(
+    operation: string,
+    table: string,
+    duration: number,
+    context?: LogContext,
+  ): void;
+  apiCall(
+    method: string,
+    url: string,
+    statusCode: number,
+    duration: number,
+    context?: LogContext,
+  ): void;
   authEvent(event: string, userId?: string, context?: LogContext): void;
-  securityEvent(event: string, severity: 'low' | 'medium' | 'high' | 'critical', context?: LogContext): void;
-  performance(metric: string, value: number, unit: string, context?: LogContext): void;
-  validationError(field: string, value: any, rule: string, context?: LogContext): void;
-  cacheOperation(operation: 'hit' | 'miss' | 'set' | 'delete', key: string, context?: LogContext): void;
-  
+  securityEvent(
+    event: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    context?: LogContext,
+  ): void;
+  performance(
+    metric: string,
+    value: number,
+    unit: string,
+    context?: LogContext,
+  ): void;
+  validationError(
+    field: string,
+    value: any,
+    rule: string,
+    context?: LogContext,
+  ): void;
+  cacheOperation(
+    operation: 'hit' | 'miss' | 'set' | 'delete',
+    key: string,
+    context?: LogContext,
+  ): void;
+
   // Child logger
   child(context: LogContext): ILoggerService;
 }

@@ -25,26 +25,27 @@ describe('SyncService', () => {
   let loggerInstance: any;
   let listProducts: jest.Mock;
 
-  const createConfigMock = (): jest.Mocked<ConfigService> => ({
-    get: jest.fn((key: string) => {
-      const values: Record<string, any> = {
-        SYNC_PAGE_SIZE: 2,
-        CONTENTFUL_ENVIRONMENT: 'master',
-        CONTENTFUL_CONTENT_TYPE: 'product',
-        HTTP_TIMEOUT_MS: 1000,
-        HTTP_RETRIES: 1,
-      };
-      return values[key];
-    }),
-    getOrThrow: jest.fn((key: string) => {
-      const required: Record<string, string> = {
-        CONTENTFUL_SPACE_ID: 'space',
-        CONTENTFUL_ACCESS_TOKEN: 'token',
-      };
-      if (!(key in required)) throw new Error(`Missing ${key}`);
-      return required[key];
-    }),
-  } as unknown as jest.Mocked<ConfigService>);
+  const createConfigMock = (): jest.Mocked<ConfigService> =>
+    ({
+      get: jest.fn((key: string) => {
+        const values: Record<string, any> = {
+          SYNC_PAGE_SIZE: 2,
+          CONTENTFUL_ENVIRONMENT: 'master',
+          CONTENTFUL_CONTENT_TYPE: 'product',
+          HTTP_TIMEOUT_MS: 1000,
+          HTTP_RETRIES: 1,
+        };
+        return values[key];
+      }),
+      getOrThrow: jest.fn((key: string) => {
+        const required: Record<string, string> = {
+          CONTENTFUL_SPACE_ID: 'space',
+          CONTENTFUL_ACCESS_TOKEN: 'token',
+        };
+        if (!(key in required)) throw new Error(`Missing ${key}`);
+        return required[key];
+      }),
+    }) as unknown as jest.Mocked<ConfigService>;
 
   const createLoggerMock = () => ({
     operationStart: jest.fn(),
@@ -68,13 +69,13 @@ describe('SyncService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     config = createConfigMock();
-    productsRepo = ({
+    productsRepo = {
       upsertFromContentfulSafe: jest.fn(),
-    } as unknown) as jest.Mocked<ProductsRepository>;
-    syncStateRepo = ({
+    } as unknown as jest.Mocked<ProductsRepository>;
+    syncStateRepo = {
       getCursor: jest.fn(),
       bumpIfLater: jest.fn(),
-    } as unknown) as jest.Mocked<SyncStateRepository>;
+    } as unknown as jest.Mocked<SyncStateRepository>;
 
     loggerInstance = createLoggerMock();
     LoggerServiceMock.mockImplementation(() => loggerInstance);
@@ -87,13 +88,19 @@ describe('SyncService', () => {
 
   it('processes pages, normalizes entries and updates sync cursor', async () => {
     const entryDate = '2025-09-19T10:00:00.000Z';
-    syncStateRepo.getCursor.mockResolvedValueOnce(null).mockResolvedValueOnce(new Date(entryDate));
+    syncStateRepo.getCursor
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(new Date(entryDate));
     listProducts
       .mockResolvedValueOnce({
         total: 2,
         items: [
           {
-            sys: { id: 'ctf-1', updatedAt: entryDate, createdAt: '2025-09-10T10:00:00.000Z' },
+            sys: {
+              id: 'ctf-1',
+              updatedAt: entryDate,
+              createdAt: '2025-09-10T10:00:00.000Z',
+            },
             fields: {
               sku: ' sku-123 ',
               name: '  Fancy Lamp  ',
@@ -120,7 +127,11 @@ describe('SyncService', () => {
       timeoutMs: 1000,
       retries: 1,
     });
-    expect(listProducts).toHaveBeenCalledWith({ limit: 2, skip: 0, updatedAtGte: undefined });
+    expect(listProducts).toHaveBeenCalledWith({
+      limit: 2,
+      skip: 0,
+      updatedAtGte: undefined,
+    });
     expect(productsRepo.upsertFromContentfulSafe).toHaveBeenCalledWith(
       expect.objectContaining({
         contentfulId: 'ctf-1',
@@ -132,7 +143,10 @@ describe('SyncService', () => {
         sourceUpdatedAt: new Date(entryDate),
       }),
     );
-    expect(syncStateRepo.bumpIfLater).toHaveBeenCalledWith('contentful:product', new Date(entryDate));
+    expect(syncStateRepo.bumpIfLater).toHaveBeenCalledWith(
+      'contentful:product',
+      new Date(entryDate),
+    );
     expect(syncStateRepo.getCursor).toHaveBeenCalledTimes(2);
     expect(loggerInstance.operationComplete).toHaveBeenCalled();
     expect(loggerInstance.operationFailed).not.toHaveBeenCalled();
@@ -144,7 +158,11 @@ describe('SyncService', () => {
       total: 1,
       items: [
         {
-          sys: { id: 'ctf-err', updatedAt: '2025-09-19T10:00:00.000Z', createdAt: '2025-09-10T10:00:00.000Z' },
+          sys: {
+            id: 'ctf-err',
+            updatedAt: '2025-09-19T10:00:00.000Z',
+            createdAt: '2025-09-10T10:00:00.000Z',
+          },
           fields: { name: 'Broken item' },
         },
       ],

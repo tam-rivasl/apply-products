@@ -1,46 +1,44 @@
-import { LoggerService } from '../services/logger.service';
-
 export interface LogMethodOptions {
   /**
    * Custom operation name. If not provided, uses method name
    */
   operation?: string;
-  
+
   /**
    * Log level for the operation start/complete messages
    * @default 'debug'
    */
   level?: 'log' | 'debug' | 'verbose';
-  
+
   /**
    * Whether to log method arguments
    * @default false
    */
   logArgs?: boolean;
-  
+
   /**
    * Whether to log method return value
    * @default false
    */
   logResult?: boolean;
-  
+
   /**
    * Whether to log errors
    * @default true
    */
   logErrors?: boolean;
-  
+
   /**
    * Custom context to include in logs
    */
   context?: Record<string, any>;
-  
+
   /**
    * Whether to include execution time
    * @default true
    */
   includeDuration?: boolean;
-  
+
   /**
    * Custom error handler
    */
@@ -49,7 +47,7 @@ export interface LogMethodOptions {
 
 /**
  * Decorator to automatically log method execution
- * 
+ *
  * @example
  * ```typescript
  * @LogMethod({ operation: 'user.create', logArgs: true })
@@ -59,7 +57,11 @@ export interface LogMethodOptions {
  * ```
  */
 export function LogMethod(options: LogMethodOptions = {}) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyName: string,
+    descriptor: PropertyDescriptor,
+  ) {
     const method = descriptor.value;
     const {
       operation = propertyName,
@@ -77,10 +79,10 @@ export function LogMethod(options: LogMethodOptions = {}) {
       let logger = this['logger'] || this['appLogger'];
       if (!logger) {
         // Fallback: create a new logger instance
-        const { LoggerService } = require('../services/logger.service');
+        const { LoggerService } = await import('../services/logger.service');
         logger = new LoggerService();
       }
-      
+
       const startTime = Date.now();
       const traceId = Math.random().toString(36).substring(2, 15);
 
@@ -149,7 +151,7 @@ export function LogMethod(options: LogMethodOptions = {}) {
 
 /**
  * Decorator for database operations with automatic logging
- * 
+ *
  * @example
  * ```typescript
  * @LogDbOperation('users')
@@ -158,7 +160,10 @@ export function LogMethod(options: LogMethodOptions = {}) {
  * }
  * ```
  */
-export function LogDbOperation(table: string, options: Omit<LogMethodOptions, 'operation'> = {}) {
+export function LogDbOperation(
+  table: string,
+  options: Omit<LogMethodOptions, 'operation'> = {},
+) {
   return LogMethod({
     ...options,
     operation: `db.${table}`,
@@ -171,7 +176,7 @@ export function LogDbOperation(table: string, options: Omit<LogMethodOptions, 'o
 
 /**
  * Decorator for external API calls with automatic logging
- * 
+ *
  * @example
  * ```typescript
  * @LogApiCall('contentful')
@@ -180,7 +185,10 @@ export function LogDbOperation(table: string, options: Omit<LogMethodOptions, 'o
  * }
  * ```
  */
-export function LogApiCall(service: string, options: Omit<LogMethodOptions, 'operation'> = {}) {
+export function LogApiCall(
+  service: string,
+  options: Omit<LogMethodOptions, 'operation'> = {},
+) {
   return LogMethod({
     ...options,
     operation: `api.${service}`,
@@ -193,7 +201,7 @@ export function LogApiCall(service: string, options: Omit<LogMethodOptions, 'ope
 
 /**
  * Decorator for business operations with automatic logging
- * 
+ *
  * @example
  * ```typescript
  * @LogBusinessOperation('user.registration')
@@ -202,7 +210,10 @@ export function LogApiCall(service: string, options: Omit<LogMethodOptions, 'ope
  * }
  * ```
  */
-export function LogBusinessOperation(operation: string, options: Omit<LogMethodOptions, 'operation'> = {}) {
+export function LogBusinessOperation(
+  operation: string,
+  options: Omit<LogMethodOptions, 'operation'> = {},
+) {
   return LogMethod({
     ...options,
     operation,
@@ -215,7 +226,7 @@ export function LogBusinessOperation(operation: string, options: Omit<LogMethodO
 
 /**
  * Decorator for security-sensitive operations
- * 
+ *
  * @example
  * ```typescript
  * @LogSecurityOperation('auth.login')
@@ -224,7 +235,10 @@ export function LogBusinessOperation(operation: string, options: Omit<LogMethodO
  * }
  * ```
  */
-export function LogSecurityOperation(operation: string, options: Omit<LogMethodOptions, 'operation'> = {}) {
+export function LogSecurityOperation(
+  operation: string,
+  options: Omit<LogMethodOptions, 'operation'> = {},
+) {
   return LogMethod({
     ...options,
     operation,
