@@ -128,7 +128,15 @@ describe('ProductsService', () => {
 
       const result = await service.create(dto as any);
 
-      expect(repository.createOne).toHaveBeenCalledWith(dto);
+      expect(repository.createOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          contentfulId: dto.contentfulId,
+          name: dto.name,
+          sku: dto.sku,
+          sourceCreatedAt: null,
+          sourceUpdatedAt: null,
+        }),
+      );
       expect(result).toBe(saved);
       expect(logger.log).toHaveBeenCalledWith(
         SUCCESS_MESSAGES.PRODUCT_CREATED,

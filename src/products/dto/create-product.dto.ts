@@ -133,8 +133,7 @@ export class CreateProductDto {
   })
   @IsOptional()
   @IsDateString()
-  @Type(() => Date)
-  sourceCreatedAt?: Date;
+  sourceCreatedAt?: string;
 
   @ApiPropertyOptional({
     description: 'Fecha de última actualización en el sistema fuente',
@@ -142,6 +141,5 @@ export class CreateProductDto {
   })
   @IsOptional()
   @IsDateString()
-  @Type(() => Date)
-  sourceUpdatedAt?: Date;
+  sourceUpdatedAt?: string;
 }

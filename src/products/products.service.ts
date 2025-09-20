@@ -63,7 +63,17 @@ export class ProductsService implements IProductsService {
       },
     });
 
-    const product = await this.repo.createOne(dto);
+    const payload = {
+      ...dto,
+      sourceCreatedAt: dto.sourceCreatedAt
+        ? new Date(dto.sourceCreatedAt)
+        : null,
+      sourceUpdatedAt: dto.sourceUpdatedAt
+        ? new Date(dto.sourceUpdatedAt)
+        : null,
+    };
+
+    const product = await this.repo.createOne(payload);
 
     this.logger.log(SUCCESS_MESSAGES.PRODUCT_CREATED, {
       context: {
