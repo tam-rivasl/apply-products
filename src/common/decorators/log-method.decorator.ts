@@ -78,9 +78,9 @@ export function LogMethod(options: LogMethodOptions = {}) {
       // Try to get logger from the service instance, or create a new one
       let logger = this['logger'] || this['appLogger'];
       if (!logger) {
-        // Fallback: create a new logger instance
-        const { LoggerService } = await import('../services/logger.service');
-        logger = new LoggerService();
+        // Fallback: use Nest logger to avoid missing dependency
+        const { Logger } = await import('@nestjs/common');
+        logger = new Logger(target.constructor.name);
       }
 
       const startTime = Date.now();
