@@ -19,7 +19,7 @@ import {
 
 export class CreateProductDto {
   @ApiProperty({
-    description: 'Contentful sys.id',
+    description: 'Contentful entry identifier (sys.id)',
     example: '1234567890abcdef',
   })
   @IsString()
@@ -29,7 +29,7 @@ export class CreateProductDto {
   contentfulId: string;
 
   @ApiProperty({
-    description: 'Nombre del producto',
+    description: 'Product name',
     example: 'iPhone 15 Pro',
     maxLength: 200,
   })
@@ -40,7 +40,7 @@ export class CreateProductDto {
   name: string;
 
   @ApiPropertyOptional({
-    description: 'SKU del producto',
+    description: 'Stock keeping unit (SKU)',
     example: 'IPH15PRO-256-BLK',
     maxLength: 200,
   })
@@ -51,7 +51,7 @@ export class CreateProductDto {
   sku?: string;
 
   @ApiPropertyOptional({
-    description: 'Categoría del producto',
+    description: 'Product category',
     example: 'Smartphones',
     maxLength: 200,
   })
@@ -62,7 +62,7 @@ export class CreateProductDto {
   category?: string;
 
   @ApiPropertyOptional({
-    description: 'Marca del producto',
+    description: 'Product brand',
     example: 'Apple',
     maxLength: 200,
   })
@@ -73,7 +73,7 @@ export class CreateProductDto {
   brand?: string;
 
   @ApiPropertyOptional({
-    description: 'Modelo del producto',
+    description: 'Product model',
     example: 'iPhone 15 Pro',
     maxLength: 200,
   })
@@ -84,7 +84,7 @@ export class CreateProductDto {
   model?: string;
 
   @ApiPropertyOptional({
-    description: 'Color del producto',
+    description: 'Product colour',
     example: 'Black',
     maxLength: 200,
   })
@@ -95,7 +95,7 @@ export class CreateProductDto {
   color?: string;
 
   @ApiPropertyOptional({
-    description: 'Moneda del precio',
+    description: 'Currency code (e.g. USD, CLP)',
     example: 'USD',
     maxLength: 50,
   })
@@ -106,7 +106,7 @@ export class CreateProductDto {
   currency?: string;
 
   @ApiPropertyOptional({
-    description: 'Precio del producto',
+    description: 'Product price',
     example: 999.99,
     minimum: 0,
   })
@@ -117,7 +117,7 @@ export class CreateProductDto {
   price?: number;
 
   @ApiPropertyOptional({
-    description: 'Stock disponible',
+    description: 'Available stock units',
     example: 100,
     minimum: 0,
   })
@@ -128,7 +128,7 @@ export class CreateProductDto {
   stock?: number;
 
   @ApiPropertyOptional({
-    description: 'Fecha de creación en el sistema fuente',
+    description: 'Source creation timestamp (ISO-8601)',
     example: '2024-01-15T10:30:00Z',
   })
   @IsOptional()
@@ -136,7 +136,7 @@ export class CreateProductDto {
   sourceCreatedAt?: string;
 
   @ApiPropertyOptional({
-    description: 'Fecha de última actualización en el sistema fuente',
+    description: 'Source last update timestamp (ISO-8601)',
     example: '2024-01-15T10:30:00Z',
   })
   @IsOptional()

@@ -1,67 +1,66 @@
-// src/common/utils/sanitize.ts
+// Utility helpers for normalising user-provided strings and numbers.
 
-/** Colapsa espacios internos a uno y trimea extremos. */
+/** Collapse internal whitespace and trim the ends of a string. */
 export const collapseSpaces = (s: string) => s.replace(/\s+/g, ' ').trim();
 
-/** Quita diacríticos (ñ se mantiene como ñ → se separa en NFD). Úsalo con moderación. */
+/** Remove diacritics from a string while keeping the base characters. */
 export const stripDiacritics = (s: string) =>
   s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-/** Devuelve string “limpio” o undefined si no venía o quedó vacío. */
+/** Return a cleaned string or undefined if the result is empty. */
 export const cleanString = (v?: unknown): string | undefined => {
   if (typeof v !== 'string') return undefined;
   const out = collapseSpaces(v);
   return out.length ? out : undefined;
 };
 
-/** Versión que devuelve null cuando queda vacío (útil para columnas NULLable). */
+/** Same as cleanString but returns null when the result is empty. */
 export const cleanStringOrNull = (v?: unknown): string | null => {
   if (typeof v !== 'string') return null;
   const out = collapseSpaces(v);
   return out.length ? out : null;
 };
 
-/** Uppercase seguro: usa cleanString y si queda vacío devuelve undefined. */
+/** Uppercase helper that returns undefined if the string is empty. */
 export const toUpper = (v?: unknown): string | undefined => {
   const s = cleanString(v);
   return s ? s.toUpperCase() : undefined;
 };
 
-/** Uppercase que retorna null cuando queda vacío (para columnas NULLable). */
+/** Uppercase helper that returns null when the string is empty. */
 export const toUpperOrNull = (v?: unknown): string | null => {
   const s = cleanString(v);
   return s ? s.toUpperCase() : null;
 };
 
-/** Convierte a número (float/decimal) o undefined si no aplica. No castea undefined→null. */
+/** Convert to number (float/decimal) or undefined when conversion fails. */
 export const toNumberOrUndef = (v?: unknown): number | undefined => {
   if (v === undefined || v === null || v === '') return undefined;
-  // Permite "12,34" → "12.34" (caso locales)
   const asStr = String(v).replace(',', '.');
   const n = Number(asStr);
   return Number.isFinite(n) ? n : undefined;
 };
 
-/** Convierte a número (float/decimal) o null si no aplica (para columnas NULLable). */
+/** Convert to number or null when conversion fails (nullable columns). */
 export const toNumberOrNull = (v?: unknown): number | null => {
   const n = toNumberOrUndef(v);
   return n === undefined ? null : n;
 };
 
-/** Convierte a int o undefined si no aplica. */
+/** Convert to integer or undefined when conversion fails. */
 export const toIntOrUndef = (v?: unknown): number | undefined => {
   if (v === undefined || v === null || v === '') return undefined;
   const n = parseInt(String(v), 10);
   return Number.isFinite(n) ? n : undefined;
 };
 
-/** Convierte a int o null si no aplica (para columnas NULLable). */
+/** Convert to integer or null when conversion fails (nullable columns). */
 export const toIntOrNull = (v?: unknown): number | null => {
   const n = toIntOrUndef(v);
   return n === undefined ? null : n;
 };
 
-/** Limpia string y quita diacríticos opcionalmente. */
+/** Clean a string and optionally remove diacritics. */
 export const cleanAndMaybeStrip = (
   v?: unknown,
   opts?: { strip?: boolean },
@@ -71,34 +70,33 @@ export const cleanAndMaybeStrip = (
   return opts?.strip ? stripDiacritics(s) : s;
 };
 
-/** Normaliza una currency (CLP, USD, etc.). Devuelve undefined si no aplica. */
+/** Normalise currency codes (e.g. CLP, USD). */
 export const normalizeCurrency = (v?: unknown): string | undefined => {
   const up = toUpper(v);
   if (!up) return undefined;
-  // Mantén solo A-Z (3–5 chars típico). Ajusta si quieres permitir símbolos.
   const code = up.replace(/[^A-Z]/g, '');
   return code.length ? code : undefined;
 };
 
-/** SKU típico: colapsa espacios, uppercase y recorta a 64 chars. */
+/** Normalise SKU: collapse spaces, uppercase and trim to 64 characters. */
 export const normalizeSku = (v?: unknown): string | undefined => {
   const s = cleanString(v);
   if (!s) return undefined;
   return s.toUpperCase().slice(0, 64);
 };
 
-/** Nombre de producto: colapsa, recorta a 200 chars; si queda vacío, null/undefined según preferencia. */
+/** Normalise product name: collapse spaces, limit to 200 characters. */
 export const normalizeNameOrNull = (v?: unknown): string | null => {
   const s = cleanString(v);
   if (!s) return null;
   return s.slice(0, 200);
 };
 
-/** Helpers agrupados (retrocompatibles con tu viejo objeto `sanitize`) */
+/** Export grouped helpers for backwards compatibility. */
 export const sanitize = {
-  str: cleanStringOrNull, // string | null
-  strUndef: cleanString, // string | undefined
-  up: toUpperOrNull, // string | null
-  dec: toNumberOrNull, // number | null
-  int: toIntOrNull, // number | null
+  str: cleanStringOrNull,
+  strUndef: cleanString,
+  up: toUpperOrNull,
+  dec: toNumberOrNull,
+  int: toIntOrNull,
 };
